@@ -1,0 +1,11 @@
+{{ ansible_managed | comment }}
+[Unit]
+Description=Mailbox synchronization timer
+
+[Timer]
+OnBootSec={{ mbsync_systemd_timer_on_boot_sec }}
+OnUnitActiveSec={{ mbsync_systemd_timer_on_unit_active_sec }}
+Unit=mbsync.service
+
+[Install]
+WantedBy=timers.target

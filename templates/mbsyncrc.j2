@@ -1,0 +1,10 @@
+{{ ansible_managed | comment }}
+{% if mbsync_mbsyncrc_content is not none %}
+{%- if mbsync_mbsyncrc_content is string %}
+{{ mbsync_mbsyncrc_content }}
+{% elif (mbsync_mbsyncrc_content is iterable) %}
+{% for content_line in mbsync_mbsyncrc_content %}
+{{ content_line }}
+{% endfor %}
+{% endif %}
+{% endif %}

@@ -1,0 +1,41 @@
+---
+# This is an example playbook to execute Ansible tests.
+
+- name: Verify
+  hosts: all
+  tasks:
+    - name: Get the user's home directory
+      user:
+        name: mbsync
+      register: configured_user
+
+    - name: Look for files in the user's home directory
+      stat:
+        path: "{{ configured_user.home + '/.config/systemd/user/mbsync.service' }}"
+
+    - name: Look for files in the user's home directory
+      stat:
+        path: "{{ configured_user.home + '/.config/systemd/user/mbsync.timer' }}"
+
+    - name: Check that we can mess with the mbsync systemd stuff
+      service:
+        name: mbsync.timer
+        scope: user
+        enabled: true
+
+    - name: Check that we can mess with the mbsync systemd stuff
+      service:
+        name: mbsync.timer
+        scope: user
+        enabled: false
+
+    - name: Look for the mbsync rc file
+      stat:
+        path: "{{ configured_user.home + '/' + mbsync_mbsyncrc_filename }}"
+      register: mbsyncrc_st
+
+    - name: Make sure that the file exists and has stuff
+      assert:
+        that:
+          - "mbsyncrc_st.stat.exists"
+          - "mbsyncrc_st.stat.size > 0"

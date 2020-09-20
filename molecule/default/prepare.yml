@@ -1,0 +1,28 @@
+---
+- name: Prepare
+  hosts: all
+  gather_facts: false
+  tasks:
+    - name: Install python if needed
+      raw: |
+        if sudo apt-get update >/dev/null 2>&1; then
+          sudo apt-get -y install python3;
+        elif sudo yum -y update >/dev/null 2>&1; then
+          sudo yum -y install python3;
+        fi;
+
+    - name: Gather facts with Python installed
+      setup:
+
+    - name: Create mbsync group
+      group:
+        name: mbsync
+      become: true
+
+    - name: Add mbsync user
+      user:
+        name: mbsync
+        group: mbsync
+        home: /home/mbsync
+        create_home: true
+      become: true

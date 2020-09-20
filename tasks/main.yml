@@ -1,0 +1,137 @@
+---
+# tasks file for ansible-role-mbsync
+- name: Quit if no user was defined
+  fail:
+    msg: >
+      You must define an appropriate owner value for this module to run successfully
+      even if that owner is 'root' (but you probably shouldn't be using root).
+  when:
+    - "mbsync_owner is none"
+    - "mbsync_group is none"
+
+- name: Load platform variables
+  include_vars: "{{ filename }}"
+  vars:
+    vars_files:
+      files:
+        - "{{ role_path }}/vars/{{ ansible_distribution | lower }}/\
+          {{ ansible_distribution_major_version }}.yml"
+        - "{{ role_path }}/vars/{{ ansible_distribution | lower }}/\
+          main.yml"
+        - "{{ role_path }}/vars/{{ ansible_os_family | lower }}/\
+          main.yml"
+        - "{{ role_path }}/vars/main.yml"
+  loop: "{{ q('first_found', vars_files, errors='ignore') }}"
+  loop_control:
+    loop_var: filename
+  tags:
+    - vars
+
+- name: Load platform dependencies
+  vars:
+    tasks:
+      files:
+        - "{{ role_path }}/tasks/dependencies/\
+          {{ ansible_distribution | lower }}/\
+          {{ ansible_distribution_major_version }}.yml"
+        - "{{ role_path }}/tasks/dependencies/\
+          {{ ansible_distribution | lower }}/\
+          main.yml"
+        - "{{ role_path }}/tasks/dependencies/\
+          {{ ansible_os_family | lower }}.yml"
+        - "{{ role_path }}/tasks/dependencies/main.yml"
+  include_tasks: "{{ filename }}"
+  loop: "{{ q('first_found', tasks, errors='ignore') }}"
+  loop_control:
+    loop_var: filename
+  tags:
+    - dependencies
+    - packages
+
+- name: Test for user existence
+  command: >
+    getent passwd {{ mbsync_owner }}
+  changed_when: false
+  tags:
+    - user
+
+- name: Set details on the selected user
+  user:
+    name: "{{ mbsync_owner }}"
+  register: configured_user
+  tags:
+    - user
+
+- name: Create path for .service file
+  file:
+    path: >-
+      {{
+        (mbsync_systemd_service_filename|dirname)
+          if mbsync_systemd_service_filename.startswith('/')
+          else (configured_user.home + '/' + mbsync_systemd_service_filename)|dirname
+      }}
+    state: directory
+    owner: "{{ mbsync_owner }}"
+    group: "{{ mbsync_group }}"
+    mode: "{{ mbsync_systemd_path_mode }}"
+  tags:
+    - systemd
+  when:
+    - "mbsync_systemd_enabled"
+
+- name: Create path for .timer file (it might be different for some reason?)
+  file:
+    path: >-
+      {{
+        (mbsync_systemd_timer_filename|dirname)
+          if mbsync_systemd_timer_filename.startswith('/')
+          else (configured_user.home + '/' + mbsync_systemd_timer_filename)|dirname
+      }}
+    state: directory
+    owner: "{{ mbsync_owner }}"
+    group: "{{ mbsync_group }}"
+    mode: "{{ mbsync_systemd_path_mode }}"
+  tags:
+    - systemd
+  when:
+    - "mbsync_systemd_enabled"
+
+- name: Install .service and .timer file
+  template:
+    src: "{{ systemd_file.src }}"
+    dest: >-
+      {{
+        systemd_file.dest
+          if systemd_file.dest.startswith('/')
+          else (configured_user.home + '/' + systemd_file.dest)
+      }}
+    owner: "{{ mbsync_owner }}"
+    group: "{{ mbsync_group }}"
+    mode: "{{ mbsync_systemd_file_mode }}"
+  loop:
+    - src: mbsync.service.j2
+      dest: "{{ mbsync_systemd_service_filename }}"
+    - src: mbsync.timer.j2
+      dest: "{{ mbsync_systemd_timer_filename }}"
+  loop_control:
+    loop_var: systemd_file
+  notify: systemctl daemon-reload
+  tags:
+    - systemd
+  become: true
+  become_user: "{{ mbsync_owner }}"
+  when:
+    - "mbsync_systemd_enabled"
+
+- name: Install mbsync configuration file
+  template:
+    src: mbsyncrc.j2
+    dest: >-
+      {{
+        mbsync_mbsyncrc_filename
+          if mbsync_mbsyncrc_filename.startswith('/')
+          else (configured_user.home + '/' + mbsync_mbsyncrc_filename)
+      }}
+    owner: "{{ mbsync_owner }}"
+    group: "{{ mbsync_group }}"
+    mode: "0600"

@@ -1,0 +1,12 @@
+---
+- name: Converge
+  hosts: all
+  tasks:
+    - block:
+        - name: "Include ansible-role-mbsync"
+          include_role:
+            name: "ansible-role-mbsync"
+          vars:
+            mbsync_owner: mbsync
+            mbsync_group: mbsync
+      become: true

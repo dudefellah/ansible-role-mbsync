@@ -1,0 +1,76 @@
+---
+# defaults file for ansible-role-mbsync
+
+# Define the list of packages to install for mbsync. If set to null, the
+# required packages will be guessed with the help of the configuration
+# files under vars/* for each platform. If set to empty ([]), no packages
+# will be installd.
+mbsync_packages: null
+
+# The user for whom we want to install the mbsync setup and config.
+# This must be explicitly set to someone who can be verified with
+# the "getent" command. Since I want to avoid having the Ansible user
+# module avoid accidentally creating people, this role will fail if the
+# `mbsync_owner` value is null or points to someone who doesn't exist.
+mbsync_owner: null
+
+# A group must also be defined for install. This value is used for the group
+# membership defined for various installed files.
+mbsync_group: null
+
+# Hopefully this variable name isn't too misleading. When set to 'false'
+# the role will just avoid installing the .service and .timer files
+# along with avoiding any necessary path creation in the process. This
+# doesn't install the service and enable/disable it as you might expect.
+mbsync_systemd_enabled: true
+
+# On the off chance that you might care about the permissions being set
+# on the directories holding your .service and .timer files for systemd,
+# you're allowed to set them here.
+mbsync_systemd_path_mode: "0700"
+
+# Likewise for the installed systemd files, you can set the file modes
+# here if you'd like. This role isn't so granular as to allow you to
+# set the permissions of each file specifically, but this value should
+# be more than enough anyway.
+mbsync_systemd_file_mode: "0600"
+
+# Since I largely followed the instructions for my install from here:
+# https://wiki.archlinux.org/index.php/isync
+# I thought it might be nice to allow a user .service and .timer file
+# to get installed through this role as well. This value sets the
+# location of the systemd .service filename to be used. If relative,
+# it will be installed relative to the user's home directory.
+mbsync_systemd_service_filename: .config/systemd/user/mbsync.service
+
+# These arguments will be passed to the systemd service's mbsync command
+mbsync_systemd_service_cmd_args:
+  - "-Va"
+
+# Optionally run a command (like oneshot) after the service has finished
+# running.
+mbsync_systemd_service_exec_start_post: null
+# Eg.
+# mbsync_systemd_service_exec_start_post: /usr/bin/notmuch new
+
+# Like the systemd service filename, but for the timer definition.
+mbsync_systemd_timer_filename: .config/systemd/user/mbsync.timer
+
+# The systemd timer OnBootSec value to configure how long to wait after
+# boot before running the job.
+mbsync_systemd_timer_on_boot_sec: 2m
+
+# The systemd timer to decide the mail sync polling frequency.
+mbsync_systemd_timer_on_unit_active_sec: 5m
+
+# Set to true to enable the timer.
+mbsync_systemd_timer_enabled: true
+
+# Set the configuration filename here. Relative paths are considered
+# to be under the user's home directory.
+mbsync_mbsyncrc_filename: .mbsyncrc
+
+# A very simple variable for holding the mbsyncrc configuration values.
+# You can create one large string, or use the value as an array and deposit
+# multiple lines as your configuration.
+mbsync_mbsyncrc_content: null

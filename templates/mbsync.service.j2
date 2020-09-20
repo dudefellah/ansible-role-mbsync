@@ -1,0 +1,7 @@
+{{ ansible_managed | comment }}
+[Unit]
+Description=Mailbox synchronization service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/mbsync {{ mbsync_systemd_service_cmd_args | default([]) | join(' ') }}
