@@ -1,4 +1,4 @@
-Role Name
+MBSync
 =========
 
 This is a pretty simple role intended to make it a little bit easier to manage
