@@ -10,7 +10,7 @@ mbsync_packages: null
 # The user for whom we want to install the mbsync setup and config.
 # This must be explicitly set to someone who can be verified with
 # the "getent" command. Since I want to avoid having the Ansible user
-# module avoid accidentally creating people, this role will fail if the
+# module accidentally creating people, this role will fail if the
 # `mbsync_owner` value is null or points to someone who doesn't exist.
 mbsync_owner: null
 
