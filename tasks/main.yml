@@ -118,8 +118,6 @@
   notify: systemctl daemon-reload
   tags:
     - systemd
-  become: true
-  become_user: "{{ mbsync_owner }}"
   when:
     - "mbsync_systemd_enabled"
 
