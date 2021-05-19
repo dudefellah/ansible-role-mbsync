@@ -18,6 +18,9 @@ mbsync_owner: null
 # membership defined for various installed files.
 mbsync_group: null
 
+# Path to the mbsync binary.
+mbsync_bin_path: /usr/bin/mbsync
+
 # Hopefully this variable name isn't too misleading. When set to 'false'
 # the role will just avoid installing the .service and .timer files
 # along with avoiding any necessary path creation in the process. This

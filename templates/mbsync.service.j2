@@ -4,7 +4,7 @@ Description=Mailbox synchronization service
 
 [Service]
 Type=oneshot
-ExecStart=/usr/bin/mbsync {{ mbsync_systemd_service_cmd_args | default([]) | join(' ') }}
+ExecStart={{ mbsync_bin_path }} {{ mbsync_systemd_service_cmd_args | default([]) | join(' ') }}
 
 [Install]
 WantedBy=multi-user.target
